@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 110;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,6 +12,7 @@
 		437925AC38DBA06BA827AECC /* DetectableCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCF32E29B32EB58E784C1329 /* DetectableCatalog.swift */; };
 		59A47D46E8816AE21F4C2269 /* GFNPresenceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3CCD9598EB489041A4E0D1A9 /* GFNPresenceApp.swift */; };
 		723752C71C9F8274B937672C /* LogWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC84C48EF70BC3226274CDF3 /* LogWatcher.swift */; };
+		76592E063066A59C00FCC803 /* Icon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 76592E053066A59C00FCC803 /* Icon.icon */; };
 		7F6CC68E9589F665B6E90B86 /* DiscordIPC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9D80597569BFC773874C20E /* DiscordIPC.swift */; };
 		8CA29C70713075ACA250D9A1 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74551A5EA827B8AAFCF39FE /* Models.swift */; };
 		982BD05304590BCF0EDEAC6C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9D29F5E1E08B8124EE39B3CB /* Assets.xcassets */; };
@@ -31,9 +32,10 @@
 /* Begin PBXFileReference section */
 		0FADECD4215FD6B5ACA57D71 /* GFNPresenceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GFNPresenceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		222AA21BAF627BF3C381B55B /* GFNPresence.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GFNPresence.entitlements; sourceTree = "<group>"; };
-		373A57C4330154A8C4DD1ACC /* GFNPresence.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GFNPresence.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		373A57C4330154A8C4DD1ACC /* GFN Presence.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GFN Presence.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CCD9598EB489041A4E0D1A9 /* GFNPresenceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GFNPresenceApp.swift; sourceTree = "<group>"; };
 		6485B14E0489AC67FE83DAB2 /* PresenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceController.swift; sourceTree = "<group>"; };
+		76592E053066A59C00FCC803 /* Icon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = Icon.icon; sourceTree = "<group>"; };
 		9D29F5E1E08B8124EE39B3CB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A9D80597569BFC773874C20E /* DiscordIPC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscordIPC.swift; sourceTree = "<group>"; };
 		AC84C48EF70BC3226274CDF3 /* LogWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogWatcher.swift; sourceTree = "<group>"; };
@@ -58,6 +60,7 @@
 				E4B8A4173DA240349F7EA22C /* MenuContentView.swift */,
 				F74551A5EA827B8AAFCF39FE /* Models.swift */,
 				6485B14E0489AC67FE83DAB2 /* PresenceController.swift */,
+				76592E053066A59C00FCC803 /* Icon.icon */,
 			);
 			path = GFNPresence;
 			sourceTree = "<group>";
@@ -73,7 +76,7 @@
 		BA3D2CD33E25E58670FB8306 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				373A57C4330154A8C4DD1ACC /* GFNPresence.app */,
+				373A57C4330154A8C4DD1ACC /* GFN Presence.app */,
 				0FADECD4215FD6B5ACA57D71 /* GFNPresenceTests.xctest */,
 			);
 			name = Products;
@@ -103,8 +106,6 @@
 				84891961C4149BD294988A99 /* PBXTargetDependency */,
 			);
 			name = GFNPresenceTests;
-			packageProductDependencies = (
-			);
 			productName = GFNPresenceTests;
 			productReference = 0FADECD4215FD6B5ACA57D71 /* GFNPresenceTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -118,13 +119,9 @@
 			);
 			buildRules = (
 			);
-			dependencies = (
-			);
 			name = GFNPresence;
-			packageProductDependencies = (
-			);
 			productName = GFNPresence;
-			productReference = 373A57C4330154A8C4DD1ACC /* GFNPresence.app */;
+			productReference = 373A57C4330154A8C4DD1ACC /* GFN Presence.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -134,7 +131,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					F1EBA6E136505F1BE2042720 = {
 						ProvisioningStyle = Automatic;
@@ -150,7 +147,7 @@
 			);
 			mainGroup = BEE682704562E7940BAA47EE;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 110;
 			productRefGroup = BA3D2CD33E25E58670FB8306 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -164,18 +161,16 @@
 /* Begin PBXResourcesBuildPhase section */
 		343CE636213AEB10360033B2 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				982BD05304590BCF0EDEAC6C /* Assets.xcassets in Resources */,
+				76592E063066A59C00FCC803 /* Icon.icon in Resources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1DAE094E7249B2CA666D6347 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				437925AC38DBA06BA827AECC /* DetectableCatalog.swift in Sources */,
 				7F6CC68E9589F665B6E90B86 /* DiscordIPC.swift in Sources */,
@@ -185,15 +180,12 @@
 				8CA29C70713075ACA250D9A1 /* Models.swift in Sources */,
 				2529C97A267B8E12521FAD8E /* PresenceController.swift in Sources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F8C050F8EFA3063E021D97FA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
 			files = (
 				FEE079012D38085084C50135 /* GFNPresenceTests.swift in Sources */,
 			);
-			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
@@ -206,17 +198,19 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		26BD3090E3813492BCE5CB28 /* Release */ = {
+		26BD3090E3813492BCE5CB28 /* Release configuration for PBXNativeTarget "GFNPresence" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Icon;
 				CODE_SIGN_ENTITLEMENTS = GFNPresence/GFNPresence.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = GFNPresence/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.thehudek.gfnpresence;
 				PRODUCT_MODULE_NAME = GFNPresence;
@@ -226,11 +220,12 @@
 			};
 			name = Release;
 		};
-		6918A6274996741E65DE7B2A /* Release */ = {
+		6918A6274996741E65DE7B2A /* Release configuration for PBXNativeTarget "GFNPresenceTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -244,11 +239,12 @@
 			};
 			name = Release;
 		};
-		7E6E63FB2B215C5BB75C1EBF /* Debug */ = {
+		7E6E63FB2B215C5BB75C1EBF /* Debug configuration for PBXNativeTarget "GFNPresenceTests" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -262,10 +258,11 @@
 			};
 			name = Debug;
 		};
-		9E22BE6D68A9156F9E07C06F /* Debug */ = {
+		9E22BE6D68A9156F9E07C06F /* Debug configuration for PBXProject "GFNPresence" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -296,9 +293,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -319,16 +318,18 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
 			};
 			name = Debug;
 		};
-		D8C67C1DEF9AC758450CCB03 /* Release */ = {
+		D8C67C1DEF9AC758450CCB03 /* Release configuration for PBXProject "GFNPresence" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -359,9 +360,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -375,23 +378,26 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
 			};
 			name = Release;
 		};
-		F13D8C5F49B0E002A1230E54 /* Debug */ = {
+		F13D8C5F49B0E002A1230E54 /* Debug configuration for PBXNativeTarget "GFNPresence" */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = Icon;
 				CODE_SIGN_ENTITLEMENTS = GFNPresence/GFNPresence.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = GFNPresence/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.thehudek.gfnpresence;
 				PRODUCT_MODULE_NAME = GFNPresence;
@@ -407,28 +413,25 @@
 		A7F1D33B7A251D7CC70C7A7C /* Build configuration list for PBXNativeTarget "GFNPresenceTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				7E6E63FB2B215C5BB75C1EBF /* Debug */,
-				6918A6274996741E65DE7B2A /* Release */,
+				7E6E63FB2B215C5BB75C1EBF /* Debug configuration for PBXNativeTarget "GFNPresenceTests" */,
+				6918A6274996741E65DE7B2A /* Release configuration for PBXNativeTarget "GFNPresenceTests" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
 		B90184C390A18C2DE24312BB /* Build configuration list for PBXProject "GFNPresence" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				9E22BE6D68A9156F9E07C06F /* Debug */,
-				D8C67C1DEF9AC758450CCB03 /* Release */,
+				9E22BE6D68A9156F9E07C06F /* Debug configuration for PBXProject "GFNPresence" */,
+				D8C67C1DEF9AC758450CCB03 /* Release configuration for PBXProject "GFNPresence" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
 		DE5DCCB88CDE70DF9D8E5153 /* Build configuration list for PBXNativeTarget "GFNPresence" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				F13D8C5F49B0E002A1230E54 /* Debug */,
-				26BD3090E3813492BCE5CB28 /* Release */,
+				F13D8C5F49B0E002A1230E54 /* Debug configuration for PBXNativeTarget "GFNPresence" */,
+				26BD3090E3813492BCE5CB28 /* Release configuration for PBXNativeTarget "GFNPresence" */,
 			);
-			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
