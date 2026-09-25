@@ -1,0 +1,59 @@
+name: GFNPresence
+options:
+  bundleIdPrefix: com.gfnpresence
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  xcodeVersion: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+targets:
+  GFNPresence:
+    type: application
+    platform: macOS
+    sources:
+      - GFNPresence
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.gfnpresence.app
+        PRODUCT_NAME: GFN Presence
+        PRODUCT_MODULE_NAME: GFNPresence
+        INFOPLIST_FILE: GFNPresence/Info.plist
+        CODE_SIGN_ENTITLEMENTS: GFNPresence/GFNPresence.entitlements
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_HARDENED_RUNTIME: YES
+        COMBINE_HIDPI_IMAGES: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        LD_RUNPATH_SEARCH_PATHS: "@executable_path/../Frameworks"
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_STRICT_CONCURRENCY: complete
+        ENABLE_TESTABILITY: YES
+    entitlements:
+      path: GFNPresence/GFNPresence.entitlements
+  GFNPresenceTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - GFNPresenceTests
+    dependencies:
+      - target: GFNPresence
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.gfnpresence.tests
+        PRODUCT_MODULE_NAME: GFNPresenceTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/GFN Presence.app/Contents/MacOS/GFN Presence"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  GFNPresence:
+    build:
+      targets:
+        GFNPresence: all
+        GFNPresenceTests: [test]
+    test:
+      targets:
+        - GFNPresenceTests
+    run:
+      config: Debug

@@ -1,0 +1,25 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Built app bundle (copy of Release product)
+GFN Presence.app/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Swift / SPM
+.swiftpm/
+Packages/
+Package.resolved
+
+# App support caches (local)
+*.stamp
