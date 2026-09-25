@@ -218,7 +218,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = GFNPresence/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.gfnpresence.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thehudek.gfnpresence;
 				PRODUCT_MODULE_NAME = GFNPresence;
 				PRODUCT_NAME = "GFN Presence";
 				SDKROOT = macosx;
@@ -237,7 +237,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.gfnpresence.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thehudek.gfnpresence.tests;
 				PRODUCT_MODULE_NAME = GFNPresenceTests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GFN Presence.app/Contents/MacOS/GFN Presence";
@@ -255,7 +255,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.gfnpresence.tests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thehudek.gfnpresence.tests;
 				PRODUCT_MODULE_NAME = GFNPresenceTests;
 				SDKROOT = macosx;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GFN Presence.app/Contents/MacOS/GFN Presence";
@@ -393,7 +393,7 @@
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = GFNPresence/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.gfnpresence.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.thehudek.gfnpresence;
 				PRODUCT_MODULE_NAME = GFNPresence;
 				PRODUCT_NAME = "GFN Presence";
 				SDKROOT = macosx;

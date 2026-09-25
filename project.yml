@@ -1,6 +1,6 @@
 name: GFNPresence
 options:
-  bundleIdPrefix: com.gfnpresence
+  bundleIdPrefix: com.thehudek
   deploymentTarget:
     macOS: "14.0"
   createIntermediateGroups: true
@@ -17,7 +17,7 @@ targets:
       - GFNPresence
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.gfnpresence.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.thehudek.gfnpresence
         PRODUCT_NAME: GFN Presence
         PRODUCT_MODULE_NAME: GFNPresence
         INFOPLIST_FILE: GFNPresence/Info.plist
@@ -41,7 +41,7 @@ targets:
       - target: GFNPresence
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.gfnpresence.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.thehudek.gfnpresence.tests
         PRODUCT_MODULE_NAME: GFNPresenceTests
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/GFN Presence.app/Contents/MacOS/GFN Presence"

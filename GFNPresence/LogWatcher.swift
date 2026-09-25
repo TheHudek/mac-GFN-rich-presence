@@ -106,6 +106,7 @@ final class LogWatcher {
     private let logFileName = "console.log"
 
     private var fileHandle: FileHandle?
+    private var lineBuffer = LineBuffer()
     private var source: DispatchSourceFileSystemObject?
     private var pollTimer: Timer?
     private var watchedInode: UInt64?
@@ -130,40 +131,65 @@ final class LogWatcher {
     }
 
     func start() {
-        openAndSeek()
-        // Catch up on an already-running session by scanning recent tail
-        catchUpFromTail()
-        startWatching()
+        openAndCatchUp()
         startPolling()
     }
 
     func stop() {
         pollTimer?.invalidate()
         pollTimer = nil
-        source?.cancel()
-        source = nil
-        try? fileHandle?.close()
-        fileHandle = nil
+        closeHandle()
     }
 
     // MARK: - File handling
+
+    private static let catchUpBytes: UInt64 = 2 * 1024 * 1024
 
     private var logURL: URL {
         logDirectory.appendingPathComponent(logFileName)
     }
 
-    private func openAndSeek() {
+    /// Opens the log, replays its last ~2 MB to reconstruct the current session and library,
+    /// then keeps the handle at the end for live tailing.
+    private func openAndCatchUp() {
+        closeHandle()
         let url = logURL
-        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        guard FileManager.default.fileExists(atPath: url.path),
+              let handle = try? FileHandle(forReadingFrom: url) else { return }
+
+        fileHandle = handle
+        watchedInode = inode(of: url)
+        lineBuffer = LineBuffer()
 
         do {
-            let handle = try FileHandle(forReadingFrom: url)
-            try handle.seekToEnd()
-            fileHandle = handle
-            watchedInode = inode(of: url)
+            let size = try handle.seekToEnd()
+            let offset = size > Self.catchUpBytes ? size - Self.catchUpBytes : 0
+            try handle.seek(toOffset: offset)
+            var data = try handle.readToEnd() ?? Data()
+            if offset > 0, let newline = data.firstIndex(of: 0x0A) {
+                // Starting mid-file: the first line is a fragment.
+                data = Data(data[data.index(after: newline)...])
+            }
+
+            let previousCallback = onSessionChanged
+            onSessionChanged = nil
+            process(data: data)
+            onSessionChanged = previousCallback
+            onSessionChanged?(currentSession)
+            onLibraryUpdated?(libraryGames)
         } catch {
-            fileHandle = nil
+            closeHandle()
+            return
         }
+
+        startWatching()
+    }
+
+    private func closeHandle() {
+        source?.cancel()
+        source = nil
+        try? fileHandle?.close()
+        fileHandle = nil
     }
 
     private func inode(of url: URL) -> UInt64? {
@@ -174,21 +200,25 @@ final class LogWatcher {
         return number.uint64Value
     }
 
+    private func fileSize(of url: URL) -> UInt64? {
+        (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? UInt64
+    }
+
     private func startWatching() {
         source?.cancel()
         source = nil
 
         guard let handle = fileHandle else { return }
-        let fd = handle.fileDescriptor
         let src = DispatchSource.makeFileSystemObjectSource(
-            fileDescriptor: fd,
+            fileDescriptor: handle.fileDescriptor,
             eventMask: [.extend, .write, .rename, .delete, .link],
             queue: .main
         )
         src.setEventHandler { [weak self] in
-            self?.handleFileEvent()
+            MainActor.assumeIsolated {
+                self?.checkForChanges()
+            }
         }
-        src.setCancelHandler { }
         src.resume()
         source = src
     }
@@ -197,90 +227,33 @@ final class LogWatcher {
         pollTimer?.invalidate()
         pollTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
-                self?.poll()
+                self?.checkForChanges()
             }
         }
     }
 
-    private func handleFileEvent() {
-        let current = inode(of: logURL)
-        if current != watchedInode {
-            reopen()
+    private func checkForChanges() {
+        guard let handle = fileHandle else {
+            openAndCatchUp()
             return
         }
-        readNewData()
-    }
-
-    private func poll() {
-        let current = inode(of: logURL)
-        if fileHandle == nil {
-            openAndSeek()
-            catchUpFromTail()
-            startWatching()
+        // Rotated (GFN moves the old log to console.log.bak) or truncated in place.
+        if inode(of: logURL) != watchedInode
+            || (fileSize(of: logURL) ?? 0) < handle.offsetInFile {
+            openAndCatchUp()
             return
         }
-        if current != watchedInode {
-            reopen()
-            return
-        }
-        readNewData()
-    }
-
-    private func reopen() {
-        source?.cancel()
-        source = nil
-        try? fileHandle?.close()
-        fileHandle = nil
-        openAndSeek()
-        // After rotation the new file starts fresh; reset streaming state
-        // but do a catch-up in case a session is already underway.
-        catchUpFromTail()
-        startWatching()
-    }
-
-    private func readNewData() {
-        guard let handle = fileHandle else { return }
         do {
             guard let data = try handle.readToEnd(), !data.isEmpty else { return }
             process(data: data)
         } catch {
-            reopen()
-        }
-    }
-
-    /// Read the last ~2 MB of the log to reconstruct current session / library.
-    private func catchUpFromTail() {
-        let url = logURL
-        guard FileManager.default.fileExists(atPath: url.path),
-              let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),
-              let fileSize = attrs[.size] as? UInt64 else { return }
-
-        do {
-            let handle = try FileHandle(forReadingFrom: url)
-            defer { try? handle.close() }
-            let maxBytes: UInt64 = 2 * 1024 * 1024
-            let offset = fileSize > maxBytes ? fileSize - maxBytes : 0
-            try handle.seek(toOffset: offset)
-            if let data = try handle.readToEnd() {
-                // Reset reconstruction state for catch-up
-                let previousCallback = onSessionChanged
-                onSessionChanged = nil
-                process(data: data)
-                onSessionChanged = previousCallback
-                // Emit whatever we reconstructed
-                onSessionChanged?(currentSession)
-                onLibraryUpdated?(libraryGames)
-            }
-        } catch {
-            // ignore
+            openAndCatchUp()
         }
     }
 
     private func process(data: Data) {
-        guard let text = String(data: data, encoding: .utf8) else { return }
-        let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
-        for line in lines {
-            handleEvents(LogParser.parseLine(String(line)))
+        for line in lineBuffer.append(data) {
+            handleEvents(LogParser.parseLine(line))
         }
     }
 
@@ -363,5 +336,27 @@ final class LogWatcher {
 
     private func emitSession() {
         onSessionChanged?(currentSession)
+    }
+}
+
+/// Splits a byte stream into complete lines, holding back a trailing partial line
+/// (and any UTF-8 character split across reads) until its newline arrives.
+struct LineBuffer {
+    static let maxPendingBytes = 4 * 1024 * 1024
+
+    private(set) var pending = Data()
+
+    mutating func append(_ data: Data) -> [String] {
+        pending.append(data)
+        guard let lastNewline = pending.lastIndex(of: 0x0A) else {
+            if pending.count > Self.maxPendingBytes {
+                pending.removeAll()
+            }
+            return []
+        }
+
+        let text = String(decoding: pending[...lastNewline], as: UTF8.self)
+        pending = Data(pending[pending.index(after: lastNewline)...])
+        return text.split(separator: "\n").map(String.init)
     }
 }

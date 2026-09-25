@@ -48,6 +48,8 @@ final class PresenceController {
     private let discordIPC = DiscordIPC()
     private let catalog = DetectableCatalog()
     private var desiredTarget: PresenceTarget?
+    /// Bumped on every recompute so a slower, older `apply` can't overwrite newer state.
+    private var applyGeneration = 0
     private var refreshTask: Task<Void, Never>?
     private var keepAliveTimer: Timer?
 
@@ -110,8 +112,7 @@ final class PresenceController {
         keepAliveTimer?.invalidate()
         keepAliveTimer = nil
         logWatcher.stop()
-        discordIPC.clearActivity()
-        discordIPC.disconnect()
+        discordIPC.clearAndDisconnectNow()
     }
 
     // MARK: - Manual override
@@ -143,6 +144,8 @@ final class PresenceController {
     }
 
     func recomputePresence() {
+        applyGeneration += 1
+
         guard isEnabled else {
             clearPresence()
             return
@@ -162,7 +165,8 @@ final class PresenceController {
             return
         }
 
-        Task { await apply(source: source) }
+        let generation = applyGeneration
+        Task { await apply(source: source, generation: generation) }
     }
 
     private func clearPresence() {
@@ -171,11 +175,10 @@ final class PresenceController {
         currentTitle = nil
         currentArtworkURL = nil
         discordStatus = .idle
-        let ipc = discordIPC
-        Task.detached { ipc.clearActivity() }
+        discordIPC.clearActivity()
     }
 
-    private func apply(source: PresenceSource) async {
+    private func apply(source: PresenceSource, generation: Int) async {
         await catalog.ensureLoaded()
 
         let title: String
@@ -206,7 +209,7 @@ final class PresenceController {
             catalogGame: match
         )
 
-        guard isEnabled else { return }
+        guard isEnabled, generation == applyGeneration else { return }
 
         currentTitle = target.details
         currentArtworkURL = target.largeImageKey.flatMap(URL.init(string:))
@@ -228,18 +231,27 @@ final class PresenceController {
     private func pushDesiredActivity() {
         guard isEnabled, let target = desiredTarget else { return }
 
-        let ipc = discordIPC
-        Task {
-            let result = await Task.detached { ipc.setActivity(target) }.value
-            guard self.isEnabled, self.desiredTarget == target else { return }
-            switch result {
-            case .success:
-                self.isShowingPresence = true
-                self.discordStatus = .connected
-            case .failure(let error):
-                self.isShowingPresence = false
-                self.discordStatus = .error(error.description)
+        discordIPC.setActivity(target) { [weak self] result in
+            Task { @MainActor in
+                self?.handleSetActivityResult(result, for: target)
             }
+        }
+    }
+
+    private func handleSetActivityResult(_ result: Result<Void, DiscordIPC.IPCError>, for target: PresenceTarget) {
+        guard isEnabled else {
+            discordIPC.clearActivity()
+            return
+        }
+        guard desiredTarget == target else { return }
+
+        switch result {
+        case .success:
+            isShowingPresence = true
+            discordStatus = .connected
+        case .failure(let error):
+            isShowingPresence = false
+            discordStatus = .error(error.description)
         }
     }
 

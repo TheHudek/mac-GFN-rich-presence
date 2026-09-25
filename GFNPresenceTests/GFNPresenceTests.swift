@@ -85,6 +85,7 @@ final class LogWatcherSessionTests: XCTestCase {
         "name": "FortniteClient-Win64-Shipping.exe"
         https://img.nvidiagrid.net/apps/46bfab06-d864-465d-9e56-2d9e45cdee0a/ZZ/HERO_IMAGE_01.jpg
         streamingService  onStreamingBegin
+
         """
         if let handle = try? FileHandle(forWritingTo: logURL) {
             try? handle.seekToEnd()
@@ -132,6 +133,7 @@ final class LogWatcherSessionTests: XCTestCase {
         ApplicationClass  Launch game Cyberpunk 2077® [aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee]
         "name": "Cyberpunk2077.exe"
         streamingService  onStreamingBegin
+
         """
         try? preexisting.write(to: logURL, atomically: true, encoding: .utf8)
 
@@ -155,6 +157,7 @@ final class LogWatcherSessionTests: XCTestCase {
         streamingService  onStreamingBegin
         streamingService  stop streaming called, wasStreamingStarted: true
         DiscordService  Clearing rich presence
+
         """
         try? preexisting.write(to: logURL, atomically: true, encoding: .utf8)
 
@@ -236,5 +239,99 @@ final class GameResolverTests: XCTestCase {
         XCTAssertEqual(target.details, "Anachronox")
         XCTAssertEqual(target.largeImageKey, art.absoluteString)
         XCTAssertTrue(target.useStatusDisplayTypeName)
+    }
+}
+
+final class LineBufferTests: XCTestCase {
+    func testHoldsPartialLineUntilNewline() {
+        var buffer = LineBuffer()
+        XCTAssertEqual(buffer.append(Data("streamingService  stop strea".utf8)), [])
+        XCTAssertEqual(buffer.append(Data("ming called\nnext".utf8)), ["streamingService  stop streaming called"])
+        XCTAssertEqual(buffer.pending, Data("next".utf8))
+    }
+
+    func testMultiByteCharacterSplitAcrossReads() {
+        var buffer = LineBuffer()
+        let line = Data("Launch game Fortnite® [46bfab06-d864-465d-9e56-2d9e45cdee0a]\n".utf8)
+        let registered = line.firstRange(of: Data("®".utf8))!
+        let splitPoint = registered.lowerBound + 1
+
+        XCTAssertEqual(buffer.append(line[..<splitPoint]), [])
+        let lines = buffer.append(line[splitPoint...])
+        XCTAssertEqual(lines, ["Launch game Fortnite® [46bfab06-d864-465d-9e56-2d9e45cdee0a]"])
+    }
+
+    func testInvalidUTF8DoesNotDropOtherLines() {
+        var buffer = LineBuffer()
+        var data = Data([0xFF, 0xFE, 0x0A])
+        data.append(Data("streamingService  onStreamingBegin\n".utf8))
+        let lines = buffer.append(data)
+        XCTAssertEqual(lines.last, "streamingService  onStreamingBegin")
+    }
+
+    func testDiscardsRunawayLineWithoutNewline() {
+        var buffer = LineBuffer()
+        _ = buffer.append(Data(count: LineBuffer.maxPendingBytes + 1))
+        XCTAssertTrue(buffer.pending.isEmpty)
+    }
+}
+
+final class DiscordSocketOwnershipTests: XCTestCase {
+    private var directory: URL!
+
+    override func setUpWithError() throws {
+        // Unix socket paths are limited to 104 bytes, so keep this short.
+        directory = URL(fileURLWithPath: "/private/tmp/gfnp-\(getpid())-\(Int.random(in: 0..<100_000))")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    }
+
+    override func tearDownWithError() throws {
+        try? FileManager.default.removeItem(at: directory)
+    }
+
+    func testAcceptsSocketOwnedByCurrentUser() throws {
+        let path = directory.appendingPathComponent("s").path
+        let fd = try bindSocket(at: path)
+        defer { close(fd) }
+        XCTAssertTrue(DiscordIPC.isOwnedSocket(atPath: path))
+    }
+
+    func testRejectsRegularFile() throws {
+        let path = directory.appendingPathComponent("f").path
+        FileManager.default.createFile(atPath: path, contents: Data())
+        XCTAssertFalse(DiscordIPC.isOwnedSocket(atPath: path))
+    }
+
+    func testRejectsSymlinkToSocket() throws {
+        let target = directory.appendingPathComponent("s").path
+        let fd = try bindSocket(at: target)
+        defer { close(fd) }
+        let link = directory.appendingPathComponent("l").path
+        try FileManager.default.createSymbolicLink(atPath: link, withDestinationPath: target)
+        XCTAssertFalse(DiscordIPC.isOwnedSocket(atPath: link))
+    }
+
+    func testRejectsMissingPath() {
+        XCTAssertFalse(DiscordIPC.isOwnedSocket(atPath: directory.appendingPathComponent("missing").path))
+    }
+
+    private func bindSocket(at path: String) throws -> Int32 {
+        let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+        var addr = sockaddr_un()
+        addr.sun_family = sa_family_t(AF_UNIX)
+        let bytes = path.utf8CString
+        withUnsafeMutablePointer(to: &addr.sun_path.0) { ptr in
+            bytes.withUnsafeBytes { src in _ = memcpy(ptr, src.baseAddress!, bytes.count) }
+        }
+        let result = withUnsafePointer(to: &addr) { ptr in
+            ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                Darwin.bind(fd, $0, socklen_t(MemoryLayout<sockaddr_un>.size))
+            }
+        }
+        guard fd >= 0, result == 0 else {
+            close(fd)
+            throw POSIXError(.EADDRNOTAVAIL)
+        }
+        return fd
     }
 }

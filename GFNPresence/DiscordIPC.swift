@@ -31,31 +31,34 @@ final class DiscordIPC: @unchecked Sendable {
         }
     }
 
-    private let queue = DispatchQueue(label: "com.gfnpresence.discord-ipc")
+    /// Serial queue: every request is enqueued immediately and runs in submission order,
+    /// so a clear issued after a set can never be overtaken by it.
+    private let queue = DispatchQueue(label: "com.thehudek.gfnpresence.discord-ipc")
     private var socketFD: Int32 = -1
     private var currentClientId: String?
     private var nonceCounter: UInt64 = 0
     private var isHandshaken = false
 
-    var isConnected: Bool {
-        queue.sync { socketFD >= 0 && isHandshaken }
-    }
-
-    /// Sets activity and returns when Discord acknowledges (or on failure).
-    func setActivity(_ target: PresenceTarget) -> Result<Void, IPCError> {
-        queue.sync {
-            setActivityLocked(target)
+    func setActivity(
+        _ target: PresenceTarget,
+        completion: @escaping @Sendable (Result<Void, IPCError>) -> Void
+    ) {
+        queue.async { [weak self] in
+            guard let self else { return }
+            completion(self.setActivityLocked(target))
         }
     }
 
     func clearActivity() {
-        queue.sync {
-            clearActivityLocked()
+        queue.async { [weak self] in
+            self?.clearActivityLocked()
         }
     }
 
-    func disconnect() {
+    /// Blocks until the activity is cleared and the socket closed. Used when quitting.
+    func clearAndDisconnectNow() {
         queue.sync {
+            clearActivityLocked()
             closeSocket()
         }
     }
@@ -179,10 +182,23 @@ final class DiscordIPC: @unchecked Sendable {
         return nil
     }
 
+    /// Only trust a real socket (not a symlink) owned by the current user.
+    static func isOwnedSocket(atPath path: String) -> Bool {
+        var info = stat()
+        guard lstat(path, &info) == 0 else { return false }
+        return (info.st_mode & S_IFMT) == S_IFSOCK && info.st_uid == getuid()
+    }
+
     private func openDiscordSocket() -> Int32? {
-        for path in socketPaths() {
+        for path in socketPaths() where Self.isOwnedSocket(atPath: path) {
             let fd = socket(AF_UNIX, SOCK_STREAM, 0)
             guard fd >= 0 else { continue }
+
+            // Writing to a socket Discord has closed must return EPIPE instead of killing the app.
+            var noSigPipe: Int32 = 1
+            setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &noSigPipe, socklen_t(MemoryLayout<Int32>.size))
+            var sendTimeout = timeval(tv_sec: 2, tv_usec: 0)
+            setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &sendTimeout, socklen_t(MemoryLayout<timeval>.size))
 
             var addr = sockaddr_un()
             addr.sun_family = sa_family_t(AF_UNIX)
@@ -232,11 +248,11 @@ final class DiscordIPC: @unchecked Sendable {
         var paths: [String] = []
         var bases: [String] = []
 
+        // No world-writable /tmp: another local account could plant a fake socket there.
         if let tmp = ProcessInfo.processInfo.environment["TMPDIR"], !tmp.isEmpty {
             bases.append(tmp)
         }
         bases.append(FileManager.default.temporaryDirectory.path)
-        bases.append("/tmp")
         bases.append(NSHomeDirectory() + "/Library/Application Support/discord")
 
         // Deduplicate while keeping order
