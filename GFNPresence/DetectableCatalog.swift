@@ -190,11 +190,9 @@ enum GameResolver {
             return PresenceTarget(
                 clientId: game.id,
                 details: game.name,
-                state: "via GeForce NOW",
                 largeImageKey: largeImage,
                 largeImageText: game.name,
                 smallImageKey: gfnLogoURL,
-                smallImageText: "via GeForce NOW",
                 startedAt: startedAt,
                 useStatusDisplayTypeName: false
             )
@@ -205,11 +203,9 @@ enum GameResolver {
         return PresenceTarget(
             clientId: fallbackClientId,
             details: title,
-            state: "via GeForce NOW",
             largeImageKey: largeImage,
             largeImageText: title,
             smallImageKey: gfnLogoURL,
-            smallImageText: "via GeForce NOW",
             startedAt: startedAt,
             useStatusDisplayTypeName: true
         )
