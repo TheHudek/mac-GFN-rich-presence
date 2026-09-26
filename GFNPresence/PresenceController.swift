@@ -91,7 +91,7 @@ final class PresenceController {
 
         refreshTask = Task { [weak self] in
             guard let self else { return }
-            await self.catalog.refreshIfNeeded()
+            await self.catalog.ensureLoaded()
             await MainActor.run {
                 self.catalogReady = true
                 self.recomputePresence()

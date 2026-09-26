@@ -1,6 +1,6 @@
 import Foundation
 
-struct DetectableGame: Decodable, Sendable {
+struct DetectableGame: Codable, Sendable {
     let id: String
     let name: String
     let aliases: [String]?
@@ -13,13 +13,31 @@ struct DetectableGame: Decodable, Sendable {
     }
 }
 
-struct DetectableExecutable: Decodable, Sendable {
+struct DetectableExecutable: Codable, Sendable {
     let name: String
     let isLauncher: Bool?
+    let os: String?
 
     enum CodingKeys: String, CodingKey {
-        case name
+        case name, os
         case isLauncher = "is_launcher"
+    }
+}
+
+extension DetectableGame {
+    /// Keeps only what lookups use. GeForce NOW streams Windows builds, so other platforms'
+    /// executables and launchers are dropped — this shrinks the cached list roughly 4×.
+    func trimmed() -> DetectableGame {
+        let exes = executables?
+            .filter { $0.isLauncher != true && ($0.os == nil || $0.os == "win32") }
+            .map { DetectableExecutable(name: $0.name, isLauncher: nil, os: nil) }
+        return DetectableGame(
+            id: id,
+            name: name,
+            aliases: aliases?.isEmpty == false ? aliases : nil,
+            iconHash: iconHash,
+            executables: exes?.isEmpty == false ? exes : nil
+        )
     }
 }
 
@@ -31,6 +49,7 @@ actor DetectableCatalog {
     private var byExecutable: [String: DetectableGame] = [:]
     private var byNormalizedName: [String: DetectableGame] = [:]
     private var loaded = false
+    private var loadTask: Task<Void, Never>?
 
     private var cacheDirectory: URL {
         let base = FileManager.default.homeDirectoryForCurrentUser
@@ -47,9 +66,14 @@ actor DetectableCatalog {
         cacheDirectory.appendingPathComponent("detectable.stamp")
     }
 
+    /// Loads the cached list, downloading it first when missing or older than a week.
+    /// Concurrent callers share a single load so the list is never fetched or parsed twice at once.
     func ensureLoaded() async {
         if loaded { return }
-        await load()
+        if loadTask == nil {
+            loadTask = Task(priority: .utility) { await self.load() }
+        }
+        await loadTask?.value
     }
 
     func lookup(executable: String?, title: String) -> DetectableGame? {
@@ -72,27 +96,16 @@ actor DetectableCatalog {
         return nil
     }
 
-    func refreshIfNeeded() async {
-        if shouldRefresh() {
-            await downloadAndCache()
-            await loadFromCache()
-        } else if !loaded {
-            await load()
-        }
-    }
-
     // MARK: - Loading
 
     private func load() async {
-        if FileManager.default.fileExists(atPath: cacheURL.path) {
-            await loadFromCache()
-            if shouldRefresh() {
-                await downloadAndCache()
-                await loadFromCache()
-            }
-        } else {
-            await downloadAndCache()
-            await loadFromCache()
+        let cached = readCache()
+        if let cached {
+            rebuildIndexes(from: cached)
+        }
+        if cached == nil || shouldRefresh(), let fresh = await download() {
+            rebuildIndexes(from: fresh)
+            writeCache(fresh)
         }
         loaded = true
     }
@@ -105,28 +118,30 @@ actor DetectableCatalog {
         return Date().timeIntervalSince1970 - stamp > Self.cacheMaxAge
     }
 
-    private func downloadAndCache() async {
-        do {
-            var request = URLRequest(url: Self.remoteURL)
-            request.setValue("GFNPresence/1.0", forHTTPHeaderField: "User-Agent")
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-                return
-            }
-            try data.write(to: cacheURL, options: .atomic)
-            let stamp = String(Date().timeIntervalSince1970)
-            try stamp.data(using: .utf8)?.write(to: stampURL, options: .atomic)
-        } catch {
-            // Keep existing cache on failure
+    /// Returns nil on any failure so the existing cache is kept.
+    private func download() async -> [DetectableGame]? {
+        var request = URLRequest(url: Self.remoteURL)
+        request.setValue("GFNPresence/1.0", forHTTPHeaderField: "User-Agent")
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode),
+              let games = try? JSONDecoder().decode([DetectableGame].self, from: data) else {
+            return nil
         }
+        return games.map { $0.trimmed() }
     }
 
-    private func loadFromCache() async {
-        guard let data = try? Data(contentsOf: cacheURL),
-              let games = try? JSONDecoder().decode([DetectableGame].self, from: data) else {
+    private func readCache() -> [DetectableGame]? {
+        guard let data = try? Data(contentsOf: cacheURL) else { return nil }
+        return try? JSONDecoder().decode([DetectableGame].self, from: data)
+    }
+
+    private func writeCache(_ games: [DetectableGame]) {
+        guard let data = try? JSONEncoder().encode(games),
+              (try? data.write(to: cacheURL, options: .atomic)) != nil else {
             return
         }
-        rebuildIndexes(from: games)
+        let stamp = String(Date().timeIntervalSince1970)
+        try? stamp.data(using: .utf8)?.write(to: stampURL, options: .atomic)
     }
 
     /// Test helper / bootstrap from in-memory JSON.

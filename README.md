@@ -16,7 +16,23 @@ Menu bar app for macOS that shows the **actual game** you're playing on NVIDIA G
 - macOS 14+
 - GeForce NOW for Mac
 - Discord desktop app running
-- Xcode 16+ (to build)
+- Xcode 16+ (only if you build it yourself)
+
+## Get the app
+
+You don't have to build anything: a prebuilt **`GFN Presence.app`** is committed in the root of this repository and kept up to date with the source.
+
+1. Clone or download this repository
+2. Move `GFN Presence.app` to `/Applications` (optional, but recommended for **Launch at Login**)
+3. Open it — a game controller icon appears in the menu bar
+
+The prebuilt app is not notarized by Apple, so if you downloaded the repository as a ZIP, macOS may refuse to open it the first time. Either go to System Settings → **Privacy & Security** and click **Open Anyway**, or remove the quarantine flag in Terminal:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/GFN Presence.app"
+```
+
+If you'd rather build it yourself, see [Build & run](#build--run).
 
 ## One-time setup
 
@@ -27,7 +43,7 @@ Used when a game isn't in Discord's official list (presence still shows the titl
 1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and sign in
 2. **New Application** — name it something like `a game on GeForce NOW` (this name appears for unrecognized games)
 3. Copy the **Application ID**
-4. After building/running GFN Presence, open the menu bar panel → **Fallback App ID…** → paste the ID → Save
+4. After launching GFN Presence, open the menu bar panel → **Fallback App ID…** → paste the ID → Save
 
 ### 2. Disable GeForce NOW's built-in Discord presence
 
@@ -48,18 +64,36 @@ It will **not** appear under Settings → Activity → **Registered Games** → 
 
 ## Build & run
 
+The Xcode project is committed, so you can build right after cloning. If you change `project.yml`, regenerate the project first with `xcodegen generate`.
+
+### Build the .app from the command line
+
 ```bash
-# Generate the Xcode project (after cloning)
-xcodegen generate
+xcodebuild -scheme GFNPresence -configuration Release -derivedDataPath build build
+```
 
-# Build
-xcodebuild -scheme GFNPresence -configuration Debug build
+The built app is at:
 
-# Or open in Xcode
+```
+build/Build/Products/Release/GFN Presence.app
+```
+
+Copy it to `/Applications` (or anywhere you like) and open it:
+
+```bash
+ditto "build/Build/Products/Release/GFN Presence.app" "/Applications/GFN Presence.app"
+open "/Applications/GFN Presence.app"
+```
+
+The `build/` folder is ignored by git.
+
+### Build and run from Xcode
+
+```bash
 open GFNPresence.xcodeproj
 ```
 
-Run the **GFN Presence** scheme. A game controller icon appears in the menu bar.
+Run the **GFN Presence** scheme (⌘R). A game controller icon appears in the menu bar. Xcode puts this build in its DerivedData folder; use **Product → Show Build Folder in Finder** to find the `.app`.
 
 Optional: enable **Launch at Login** from the panel.
 
